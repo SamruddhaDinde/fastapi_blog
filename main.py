@@ -11,7 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 import models
 from database import Base, engine, get_db
-from schemas import PostCreate, PostBase, PostResponse, UserCreate, UserResponse, PostUpdate
+from schemas import PostCreate, PostBase, PostResponse, UserCreate, UserResponse, PostUpdate, UserUpdate
 
 Base.metadata.create_all(bind=engine)
 
@@ -127,6 +127,8 @@ def get_user_posts(user_id:int, db: Annotated[Session, Depends(get_db)]):
   posts = result.scalars().all()
   return posts
 
+
+
 @app.get("/api/posts", response_model=list[PostResponse])
 def get_posts(db: Annotated[Session, Depends(get_db)]):
  result = db.execute(select(models.Post))
@@ -203,6 +205,21 @@ def update_post_partial(post_id: int, post_data: PostUpdate, db: Annotated[Sessi
  return post
  
 
+ # Since this delete post does not return anything, it has no response model
+@app.delete("/api/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_post(post_id: int, db: Annotated[Session, Depends(get_db)]):
+  result = db.execute(select(models.Post).where(models.Post.id == post_id))
+  post = result.scalars().first()
+  if not post:
+    raise HTTPException(
+      status_code=status.HTTP_404_NOT_FOUND,
+      detail="Post Not Found"
+    )
+  db.delete(post)
+  db.commit()
+
+
+
 ## StarletteHTTPException Handler
 @app.exception_handler(StarletteHTTPException)
 def general_http_exception_handler(request: Request, exception: StarletteHTTPException):
@@ -247,3 +264,12 @@ def validation_exception_handler(request: Request, exception: RequestValidationE
         },
         status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
     )
+
+
+"""200 Ok: get , put, patch success
+201 Created: successful post for users and posts
+
+204 No content:successful delete
+400 Bad request: dupliucate username or email
+404 Not found : user/ post not available
+422 Unprocessable entity, from pydantic"""
