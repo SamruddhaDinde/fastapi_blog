@@ -92,8 +92,20 @@ async def user_posts_page(request:Request, user_id: int, db: Annotated[AsyncSess
     {"posts": posts, "user":user, "title":f"{user.username}'s posts"}
   )
 
+@app.get("/login", include_in_schema=False)
+async def login_page(request: Request):
+   return templates.TemplateResponse(
+      request,
+      "login.html",
+      {"tile":"Login"}
+   )
 
-
+@app.get("/register", include_in_schema=False)
+async def register_page(request: Request):
+   return templates.TemplateResponse(request,
+   "register.html",
+   {"title":"Register"}
+   )
 
 ## StarletteHTTPException Handler
 @app.exception_handler(StarletteHTTPException)
