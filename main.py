@@ -24,7 +24,6 @@ from routers import users, posts
 #this is synchronous we dont need
 
 
-
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
   #startup
@@ -106,6 +105,14 @@ async def register_page(request: Request):
    "register.html",
    {"title":"Register"}
    )
+
+@app.get("/account", include_in_schema=False)
+async def account_page(request: Request):
+   return templates.TemplateResponse(request,
+   "account.html",
+   {"title":"Account"},
+   )
+
 
 ## StarletteHTTPException Handler
 @app.exception_handler(StarletteHTTPException)
