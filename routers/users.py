@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -10,7 +10,11 @@ from database import get_db
 from schemas import PostResponse, UserCreate, UserPublic, UserPrivate, UserUpdate, Token
 
 from datetime import timedelta
+from PIL import UnidentifiedImageError
 
+from starlette.concurrency import run_in_threadpool
+
+from image_utlis import delete_profile_image, preprocess_profile_image
 from fastapi.security import OAuth2PasswordRequestForm
 # for case insensitive quesries we get func
 from sqlalchemy import func, select
@@ -176,8 +180,9 @@ async def update_user(user_id: int, user_update: UserUpdate,
       user.email = user_update.email.lower()
   if user_update.username is not None:
       user.username = user_update.username
-  if user_update.image_file is not None:
-      user.image_file = user_update.image_file
+  # if user_update.image_file is not None:
+  #     user.image_file = user_update.image_file
+  # we dont need to update image now
 
   await db.commit()
   await db.refresh(user)
@@ -200,5 +205,79 @@ async def delete_user(user_id: int, current_user: CurrentUser, db:Annotated[Asyn
       detail="User does not exist"
     )
   #the delete operator does need await, different that db.add, 
+
+  old_filename = user.image_file
   await db.delete(user)
   await db.commit()
+
+  if old_filename:
+    delete_profile_image(old_filename)
+
+
+# this is async because we wanna await our database calls
+@router.patch("/{user_id}/picture", response_model=UserPrivate)
+async def upload_profile_picture(
+  user_id: int,
+  current_user: CurrentUser,
+  file: UploadFile,
+  db: Annotated[AsyncSession, Depends(get_db)],
+):
+  if current_user.id != user_id:
+    raise HTTPException(
+      status_code=status.HTTP_403_FORBIDDEN,
+      detail="Not your account to update profile pics"
+    )
+
+  content = await file.read()
+
+  if len(content) > settings.max_upload_size_bytes:
+    raise HTTPException(
+          status_code=status.HTTP_400_BAD_REQUEST,
+          detail=f"profile pic too big. Max size is {settings.max_upload_size_bytes // (1024 *1024)} MB"
+        )
+  try: 
+    new_filename = await run_in_threadpool(preprocess_profile_image, content)
+  except UnidentifiedImageError as err:
+    raise HTTPException(
+          status_code=status.HTTP_400_BAD_REQUEST,
+          detail="Invalid image file, please ulpad, JPEG, PNG"
+        ) from err 
+  old_filename = current_user.image_file
+
+  current_user.image_file = new_filename
+  await db.commit()
+  await db.refresh(current_user)
+
+  if old_filename:
+    delete_profile_image(old_filename)
+
+  return current_user
+#upload File fastapi
+#len(content) more reilable than file.size()
+
+@router.delete("/{user_id}/picture", response_model=UserPrivate)
+async def delete_profile_picture(
+  user_id : int,
+  current_user: CurrentUser,
+  db: Annotated[AsyncSession, Depends(get_db)],
+):
+  if current_user.id != user_id:
+    raise HTTPException(
+          status_code=status.HTTP_403_FORBIDDEN,
+          detail="Not your account to delete profile pics"
+        )
+  old_filename = current_user.image_file
+
+  if old_filename is None:
+    raise HTTPException(
+          status_code=status.HTTP_400_BAD_REQUEST,
+          detail="No pic to delete"
+        )
+
+  current_user.image_file = None
+  db.commit()
+  db.refresh(current_user)
+
+  delete_profile_image(old_filename)
+
+  return current_user
