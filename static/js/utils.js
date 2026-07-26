@@ -25,3 +25,20 @@ export function hideModal(modalID){
     );
     if (modal) modal.hide();
 }
+
+//prevents xss for dynamic content insertion
+export function escapeHtml(text){
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// date formatting to match servers strftime("%B %d, %Y")
+export function formatDate(dateString){
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-AU", {
+        year: "numeric",
+        month: "long",
+        day: "2-digit",
+    });
+}
