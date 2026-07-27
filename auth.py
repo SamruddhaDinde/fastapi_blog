@@ -12,6 +12,9 @@ from fastapi import Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+import hashlib # for hashing
+import secrets # generating secure random values
+
 import models
 from database import get_db
 
@@ -25,6 +28,14 @@ def hash_password(password: str) -> str:
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return password_hash.verify(plain_password, hashed_password)
 # encryption is reversible, hashing is not, so more safer
+
+def generate_reset_token() -> str:
+    return secrets.token_urlsafe(32)
+
+#sha faster than argon 2
+def hash_reset_token(token:str) -> str:
+    return hashlib.sha256(token.encode()).hexdigest()
+
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     #creates a JWT access token
