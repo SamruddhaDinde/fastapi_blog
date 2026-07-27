@@ -7,6 +7,8 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
     )
 
+    database_url :str
+
     secret_key: SecretStr
     algorithm: str ="HS256"
     access_token_expire_minutes : int =30 
@@ -21,6 +23,8 @@ class Settings(BaseSettings):
     mail_password: SecretStr = SecretStr("")
     mail_from: str = "noreply@example.com"
     mail_use_tls: bool = True
+
+
 
     frontend_url: str = "http://localhost:8000"
 

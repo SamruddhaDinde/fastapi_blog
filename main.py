@@ -15,7 +15,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 import models
-from database import Base, engine, get_db
+from database import Base, engine, get_db 
 #from schemas import PostCreate, PostBase, PostResponse, UserCreate, UserResponse, PostUpdate, UserUpdate
 
 from config import settings
@@ -27,8 +27,7 @@ from routers import users, posts
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
   #startup
-  async with engine.begin() as conn:
-    await conn.run_sync(Base.metadata.create_all)
+ 
   yield
   #shutdown
   await engine.dispose()

@@ -49,6 +49,8 @@ class Post(Base):
         default=lambda: datetime.now(UTC),
         )
     author: Mapped[User] = relationship(back_populates="posts")
+    #server default is for the database, quite imp, look into it
+    likes: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
 # Password reset token
 class PasswordResetToken(Base):

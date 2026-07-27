@@ -169,6 +169,7 @@ async def reset_password(request_data: ResetPasswordRequest,
       detail="Invalid or expired token"
     )
 
+  #if reset_token.expires_at.replace(tzinfo=UTC) < datetime.now(UTC):
   if reset_token.expires_at.replace(tzinfo=UTC) < datetime.now(UTC):
     await db.delete(reset_token)
     await db.commit()
