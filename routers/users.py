@@ -14,7 +14,7 @@ from PIL import UnidentifiedImageError
 
 from starlette.concurrency import run_in_threadpool
 
-from image_utils import delete_profile_image, preprocess_profile_image
+from image_utils import delete_profile_image, preprocess_profile_image, upload_profile_image
 from fastapi.security import OAuth2PasswordRequestForm
 # for case insensitive quesries we get func
 from sqlalchemy import func, select
@@ -24,6 +24,8 @@ from auth import CurrentUser, create_access_token, hash_password, verify_passwor
 
 from email_utils import send_password_reset_email
 from config import settings
+
+from botocore.exceptions import ClientError
 
 router = APIRouter()
 
@@ -325,7 +327,7 @@ async def delete_user(user_id: int, current_user: CurrentUser, db:Annotated[Asyn
   await db.commit()
 
   if old_filename:
-    delete_profile_image(old_filename)
+    await delete_profile_image(old_filename)
 
 
 # this is async because we wanna await our database calls
@@ -350,12 +352,20 @@ async def upload_profile_picture(
           detail=f"profile pic too big. Max size is {settings.max_upload_size_bytes // (1024 *1024)} MB"
         )
   try: 
-    new_filename = await run_in_threadpool(preprocess_profile_image, content)
+    processed_bytes, new_filename = await run_in_threadpool(preprocess_profile_image, content,)
   except UnidentifiedImageError as err:
     raise HTTPException(
           status_code=status.HTTP_400_BAD_REQUEST,
           detail="Invalid image file, please ulpad, JPEG, PNG"
         ) from err 
+
+  try:
+    await upload_profile_image(processed_bytes, new_filename)
+  except ClientError as err:
+    raise HTTPException(
+      status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+      detail="Failed to upload image, try again."
+    ) from err
   old_filename = current_user.image_file
 
   current_user.image_file = new_filename
@@ -363,7 +373,7 @@ async def upload_profile_picture(
   await db.refresh(current_user)
 
   if old_filename:
-    delete_profile_image(old_filename)
+    await delete_profile_image(old_filename)
 
   return current_user
 #upload File fastapi
@@ -389,9 +399,9 @@ async def delete_profile_picture(
         )
 
   current_user.image_file = None
-  db.commit()
-  db.refresh(current_user)
+  await db.commit()
+  await db.refresh(current_user)
 
-  delete_profile_image(old_filename)
+  await delete_profile_image(old_filename)
 
   return current_user

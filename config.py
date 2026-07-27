@@ -9,6 +9,12 @@ class Settings(BaseSettings):
 
     database_url :str
 
+    s3_bucket_name: str
+    s3_region: str = "ap-southeast-2"
+    s3_access_key_id: SecretStr | None = None
+    s3_secret_access_key: SecretStr | None= None
+    s3_endpoint_url : str | None= None
+    
     secret_key: SecretStr
     algorithm: str ="HS256"
     access_token_expire_minutes : int =30 
