@@ -265,7 +265,7 @@ async def update_user(user_id: int, user_update: UserUpdate,
   if user_id != current_user.id:
    raise HTTPException(
               status_code=status.HTTP_403_FORBIDDEN,
-              detail="Not authoirzed to update this post",
+              detail="Not authorized to update this post",
               headers={"WWW-Authneticate": "Bearer"}
           )
   result =await db.execute(select(models.User).where(models.User.id == user_id))
@@ -310,7 +310,7 @@ async def delete_user(user_id: int, current_user: CurrentUser, db:Annotated[Asyn
   if user_id != current_user.id:
     raise HTTPException(
               status_code=status.HTTP_403_FORBIDDEN,
-              detail="Not authoirzed to update this post",
+              detail="Not authorized to update this post",
               headers={"WWW-Authneticate": "Bearer"}
           )
   result = await db.execute(select(models.User).where(models.User.id == user_id))

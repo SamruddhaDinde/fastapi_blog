@@ -93,7 +93,7 @@ async def update_post_full(post_id: int, post_data: PostCreate, current_user: Cu
  if post.user_id != current_user.id:
   raise HTTPException(
               status_code=status.HTTP_403_FORBIDDEN,
-              detail="Not authoirzed to update this post",
+              detail="Not authorized to update this post",
               headers={"WWW-Authneticate": "Bearer"}
           )
  post.title = post_data.title
@@ -114,7 +114,7 @@ async def update_post_partial(post_id: int, post_data: PostUpdate, current_user:
  if post.user_id != current_user.id:
   raise HTTPException(
               status_code=status.HTTP_403_FORBIDDEN,
-              detail="Not authoirzed to update this post",
+              detail="Not authorized to update this post",
               headers={"WWW-Authneticate": "Bearer"}
           )
  update_data = post_data.model_dump(exclude_unset=True)
@@ -139,7 +139,7 @@ async def delete_post(post_id: int, current_user: CurrentUser, db: Annotated[Asy
   if post.user_id != current_user.id:
     raise HTTPException(
               status_code=status.HTTP_403_FORBIDDEN,
-              detail="Not authoirzed to delete this post",
+              detail="Not authorized to delete this post",
               headers={"WWW-Authneticate": "Bearer"}
           )
   await db.delete(post)
