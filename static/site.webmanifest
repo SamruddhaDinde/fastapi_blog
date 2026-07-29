@@ -1,7 +1,7 @@
 {
-  "name": "FastAPI Blog",
-  "short_name": "FastAPI Blog",
-  "description": "FastAPI Tutorial",
+  "name": "Sam Writes",
+  "short_name": "Sam Writes",
+  "description": "Sam's Blog",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
