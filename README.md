@@ -4,7 +4,7 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?logo=fastapi)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?logo=postgresql&logoColor=white)
 ![AWS](https://img.shields.io/badge/AWS-EC2%20%7C%20S3-orange?logo=amazonaws&logoColor=white)
-![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen?logo=pytest&logoColor=white)
+
 
 A full-stack blog application built with FastAPI, featuring secure JWT authentication, PostgreSQL, AWS S3 integration, asynchronous request handling, automated testing, and deployment on AWS EC2.
 
@@ -67,23 +67,6 @@ The project also demonstrates deployment practices such as reverse proxying with
 - Pytest
 - Moto (AWS mocking)
 
-## Project Structure
-
-```
-.
-├── alembic/
-├── routers/
-├── models/
-├── schemas/
-├── services/
-├── templates/
-├── static/
-├── tests/
-├── main.py
-├── database.py
-├── config.py
-└── README.md
-```
 
 ## Environment Variables
 
@@ -125,7 +108,3 @@ The application is deployed on AWS EC2 using:
 - HTTPS with Let's Encrypt (Certbot)
 - PostgreSQL
 - AWS S3 for media storage
-
-## License
-
-This project is licensed under the MIT License. Replace this section with your actual license if different.
